@@ -1,8 +1,7 @@
-package com.quicklycoding.rocketkotlin.util
+package com.quicklycoding.rocketkotlin
 
 import android.content.*
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.telephony.PhoneNumberUtils
@@ -17,39 +16,44 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
-import com.quicklycoding.rocketkotlin.R
-import kotlinx.android.synthetic.main.custom_toast.view.*
+
+//App packages
+const val PACKAGE_FACEBOOK = "com.facebook.katana"
+const val PACKAGE_WHATSAPP = "com.whatsapp"
+const val PACKAGE_TELEGRAM = "org.telegram.messenger"
+const val PACKAGE_INSTAGRAM = "com.instagram.android"
 
 fun String.toHTML() = HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_LEGACY)
 
+fun <T> Context.openActivity(it: Class<T>, extras: Bundle.() -> Unit = {}) {
+    val intent = Intent(this, it)
+    intent.putExtras(Bundle().apply(extras))
+    startActivity(intent)
+}
+
 // set arguments for DialogFragment
-inline fun <T : Fragment> T.withArgs(
-    argsBuilder: Bundle.() -> Unit
-): T = this.apply {
+inline fun <T : Fragment> T.withArgs(argsBuilder: Bundle.() -> Unit): T = this.apply {
     arguments = Bundle().apply(argsBuilder)
 }
 
 //Toast
-fun Context.toast(message: String, duration: Int = Toast.LENGTH_LONG) {
+fun Context.toast(message: String, duration: Int = Toast.LENGTH_LONG) =
     Toast.makeText(this, message, duration).show()
-}
 
-//Toast
-fun Fragment.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-    val toast = Toast(context)
+fun Context.toast(message: Int, duration: Int = Toast.LENGTH_LONG) =
+    Toast.makeText(this, message, duration).show()
 
-    val view = layoutInflater.inflate(R.layout.custom_toast, null)
-    view.text_view_msg.text = message
+fun Fragment.toast(message: String, duration: Int = Toast.LENGTH_LONG) =
+    Toast.makeText(requireContext(), message, duration).show()
 
-    toast.view = view
-    toast.duration = duration
-    toast.show()
-}
+fun Fragment.toast(message: Int, duration: Int = Toast.LENGTH_LONG) =
+    Toast.makeText(requireContext(), message, duration).show()
+
 
 // Copy
-fun Context.copyText(text: Any) {
+fun Context.copyText(text: String) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("", "" + text)
+    val clip = ClipData.newPlainText("", text)
     clipboard.setPrimaryClip(clip)
 }
 
@@ -87,12 +91,12 @@ fun Context.isPackageInstalled(packageName: String): Boolean {
 }
 
 // Send WhatsApp Message
-fun Context.specificWhatsAppMessage(mob: String) {
+fun Context.specificWhatsAppMessage(mobile: String) {
     if (isPackageInstalled(PACKAGE_WHATSAPP)) {
         Intent("android.intent.action.MAIN").apply {
             component = ComponentName("com.whatsapp", "com.whatsapp.Conversation")
             //phone number without "+" prefix
-            putExtra("jid", PhoneNumberUtils.stripSeparators("91$mob") + "@s.whatsapp.net")
+            putExtra("jid", PhoneNumberUtils.stripSeparators("91$mobile") + "@s.whatsapp.net")
             startActivity(this)
         }
     } else toast("App Not Installed")
@@ -105,7 +109,7 @@ fun Context.openDialer(mobile: String? = null) {
     startActivity(intent)
 }
 
-fun Context.openMessageApp(mobile: String?, message: String? = null) {
+fun Context.openSMSApp(mobile: String?, message: String? = null) {
     try {
         val smsIntent = Intent(Intent.ACTION_VIEW)
         smsIntent.type = "vnd.android-dir/mms-sms"
@@ -118,7 +122,7 @@ fun Context.openMessageApp(mobile: String?, message: String? = null) {
 }
 
 // Send Email
-fun Context.sendEmail(email: String, subject: String) {
+fun Context.openGmailApp(email: String, subject: String) {
     val intent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", email, null))
     intent.putExtra(Intent.EXTRA_SUBJECT, subject)
     intent.putExtra(Intent.EXTRA_TEXT, "")
@@ -131,13 +135,17 @@ fun AppCompatActivity.addFragment(fragment: Fragment, frameId: Int) {
         .commit()
 }
 
-
 fun Fragment.addFragment(fragment: Fragment, frameId: Int) {
     childFragmentManager.beginTransaction()
         .add(frameId, fragment)
         .commit()
 }
 
+/*
+*
+* View Extension
+*
+* */
 
 // View Visible
 fun View.show() {
@@ -159,13 +167,8 @@ fun View.hideKeyboard() {
 }
 
 //snackbar
-fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
-    Snackbar.make(this, message, duration)
-        .setAction("X") {}
-        .setActionTextColor(Color.WHITE)
-        .setBackgroundTint(Color.DKGRAY)
-        .show()
-}
+fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) =
+    Snackbar.make(this, message, duration).show()
 
 /*
 *
@@ -176,7 +179,8 @@ fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
 class NonNullMediatorLiveData<T> : MediatorLiveData<T>()
 
 fun <T> LiveData<T>.nonNull(): NonNullMediatorLiveData<T> {
-    val mediator: NonNullMediatorLiveData<T> = NonNullMediatorLiveData()
+    val mediator: NonNullMediatorLiveData<T> =
+        NonNullMediatorLiveData()
     mediator.addSource(this) { it?.let { mediator.value = it } }
     return mediator
 }

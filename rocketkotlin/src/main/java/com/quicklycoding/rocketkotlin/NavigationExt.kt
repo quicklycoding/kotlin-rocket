@@ -1,16 +1,10 @@
-package com.quicklycoding.rocketkotlin.util
+package com.quicklycoding.rocketkotlin
 
 import android.os.Bundle
-import android.util.Log
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
-import com.quicklycoding.rocketkotlin.R
 
-
-/*
-*
-* Navigate with Animation
-* */
+// Navigate with Animation
 fun NavController.navigateWithAnim(
     destination: Int, args: Bundle? = null, navOptions: NavOptions? = getNavOptionsWithFadeAnim()
 ) {
@@ -18,38 +12,28 @@ fun NavController.navigateWithAnim(
 }
 
 
-/*
-*
-* Start Destination with some conditions
-* */
+// Start Destination with some conditions
 fun NavController.startDestination(destination: Int) {
-    Log.d("NavigationExt", "startDestination: $destination")
-
     if (destination == currentDestination?.id) return
-    Log.d("NavigationExt", "startDestination: $currentDestination")
-
     if (isDestinationExists(destination)) {
         popBackStack(destination, false)
     } else {
-        navigate(destination, null, getNavOptionsWithFadeAnim())
+        navigate(
+            destination, null,
+            getNavOptionsWithFadeAnim()
+        )
     }
 }
 
 
-/*
-*
-* Show Destination if already have in back stack
-* */
+//Show Destination if already have in back stack
 fun NavController.isDestinationExists(destination: Int) = try {
     destination == getBackStackEntry(destination).destination.id
 } catch (e: IllegalArgumentException) {
     false
 }
 
-/*
-*
-*Setup Navigation Animation
-* */
+//Setup Navigation Animation
 fun getNavOptionsWithFadeAnim() = NavOptions.Builder().apply {
     setEnterAnim(R.anim.fade_in)
     setExitAnim(R.anim.fade_out)
