@@ -1,2 +1,3 @@
+include ':rocketkotlin'
 include ':app'
 rootProject.name = "RocketKotlin"
